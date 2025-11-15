@@ -203,7 +203,7 @@ void ESKF::Update(ESKF::ObsType obs, const double& R) {
                 P_.block<1, 2>(j, idx) = (P_.block<1, 2>(j, idx)) * res_temp_S2.transpose();
             }
         }
-
+        //todo: 如果传入了odo数据，会在这里不一样嘛
         /// 处理各类观测模型
         if (state_dim_ > dof_measurement) {
             Eigen::MatrixXd h_x_cur = Eigen::MatrixXd::Zero(dof_measurement, state_dim_);

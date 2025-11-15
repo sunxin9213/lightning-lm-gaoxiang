@@ -18,7 +18,7 @@
 #include "common/keyframe.h"
 
 namespace lightning {
-
+// note: 前置声明的使用，一定有一个对应类型的指针 
 class LaserMapping;  //  lio 前端
 class LoopClosing;   // 回环检测
 

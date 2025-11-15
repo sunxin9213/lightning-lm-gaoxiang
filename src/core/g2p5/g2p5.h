@@ -62,7 +62,7 @@ class G2P5 {
 
     explicit G2P5(Options options = Options()) : options_(options) {}
     ~G2P5();
-
+    // learn: 标准库函数包装器，表示一个接受G2P5MapPtr参数且无返回值的函数
     using MapUpdateCallback = std::function<void(G2P5MapPtr map)>;
 
     /// 从yaml中读取配置信息

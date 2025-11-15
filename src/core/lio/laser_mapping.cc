@@ -23,6 +23,7 @@ bool LaserMapping::Init(const std::string &config_yaml) {
     ESKF::Options eskf_options;
     eskf_options.max_iterations_ = fasterlio::NUM_MAX_ITERATIONS;
     eskf_options.epsi_ = 1e-3 * Eigen::Matrix<double, 23, 1>::Ones();
+    //sx: 在这里初始化了观测方程
     eskf_options.lidar_obs_func_ = [this](NavState &s, ESKF::CustomObservationModel &obs) { ObsModel(s, obs); };
     eskf_options.use_aa_ = use_aa_;
     kf_.Init(eskf_options);
@@ -152,6 +153,7 @@ bool LaserMapping::Run() {
     }
 
     /// IMU process, kf prediction, undistortion
+    //sx: imu简单的初始化，kf prediction, undistortion
     p_imu_->Process(measures_, kf_, scan_undistort_);
 
     if (scan_undistort_->empty() || (scan_undistort_ == nullptr)) {
@@ -165,6 +167,7 @@ bool LaserMapping::Run() {
 
         state_point_ = kf_.GetX();
         scan_down_world_->resize(scan_undistort_->size());
+        //sx: 按照predict的位置将点云转换到世界坐标系下
         for (int i = 0; i < scan_undistort_->size(); i++) {
             PointBodyToWorld(scan_undistort_->points[i], scan_down_world_->points[i]);
         }
@@ -203,6 +206,7 @@ bool LaserMapping::Run() {
     flg_EKF_inited_ = (measures_.lidar_begin_time_ - first_lidar_time_) >= fasterlio::INIT_TIME;
 
     /// downsample
+    //sx: 降采样
     voxel_scan_.setInputCloud(scan_undistort_);
     voxel_scan_.filter(*scan_down_body_);
 
@@ -227,7 +231,7 @@ bool LaserMapping::Run() {
             state_point_ = kf_.GetX();
 
             if (keep_first_imu_estimation_ && all_keyframes_.size() < 5 &&
-                (old_state.rot_.inverse() * state_point_.rot_).log().norm() > 0.3 * M_PI / 180) {
+                (old_state.rot_.inverse() * state_point_.rot_).log().norm() > 0.3 * M_PI / 180) {// sx:类似于一个异常值过滤
                 kf_.ChangeX(old_state);
                 state_point_ = old_state;
 
@@ -289,7 +293,7 @@ void LaserMapping::MakeKF() {
 
         /// opt pose 用之前的递推
         SE3 delta = last_kf_->GetLIOPose().inverse() * kf->GetLIOPose();
-        kf->SetOptPose(last_kf_->GetOptPose() * delta);
+        kf->SetOptPose(last_kf_->GetOptPose() * delta);//sx: 这会的pose是优化前的pose？
     } else {
         kf->SetOptPose(kf->GetLIOPose());
     }
@@ -498,6 +502,7 @@ void LaserMapping::MapIncremental() {
  * @param s kf state
  * @param ekfom_data H matrix
  */
+// sx:观测模型，也就是measure模型残差计算过程，点面匹配
 void LaserMapping::ObsModel(NavState &s, ESKF::CustomObservationModel &obs) {
     int cnt_pts = scan_down_body_->size();
 

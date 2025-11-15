@@ -87,7 +87,7 @@ bool SlamSystem::Init(const std::string& yaml_path) {
         imu_topic_ = yaml["common"]["imu_topic"].as<std::string>();
         cloud_topic_ = yaml["common"]["lidar_topic"].as<std::string>();
         livox_topic_ = yaml["common"]["livox_lidar_topic"].as<std::string>();
-
+        // learn: ros2中的用法
         rclcpp::QoS qos(10);
         // qos.best_effort();
 
@@ -95,8 +95,10 @@ bool SlamSystem::Init(const std::string& yaml_path) {
             imu_topic_, qos, [this](sensor_msgs::msg::Imu::SharedPtr msg) {
                 IMUPtr imu = std::make_shared<IMU>();
                 imu->timestamp = ToSec(msg->header.stamp);
+                // sx: imu加速度
                 imu->linear_acceleration =
                     Vec3d(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
+                // sx: 角速度
                 imu->angular_velocity =
                     Vec3d(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
 
